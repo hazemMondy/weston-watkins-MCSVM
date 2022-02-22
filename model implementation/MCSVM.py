@@ -1,4 +1,7 @@
+"""MCSVM"""
+import math
 import numpy as np
+import matplotlib.pyplot as plt
 
 def init_wights(hidden:int,inp:int):
 
@@ -72,11 +75,11 @@ def accuracy(weights,x_train,y_train,x_test,y_test)-> (float,float):
     test_acc = np.sum(pred) / len(out_test)
     return train_acc*100 , test_acc*100
 
-def mini_patcher(X,Y,batch_size:int=100):  
+def mini_patcher(X,Y,batch_size:int=100)->(list,list):  
 
     m = X.shape[1]
     mini_batches = []
-    num_complete_minibatches = (m // batch_size) 
+    num_complete_minibatches = math.floor(m / batch_size)
     # Shuffle (X, Y)
     x = np.array(X).reshape(X.shape[0],m)
     Y = np.array(Y).reshape(1,m)
@@ -91,6 +94,15 @@ def mini_patcher(X,Y,batch_size:int=100):
         mini_batch_y = shuffled_Y[ :, batch_size* k :batch_size* (k + 1)]
         mini_batch_X.append(mini_batch_x)
         mini_batch_Y.append(mini_batch_y.reshape(batch_size))
+    
+    # For handling the end case (last mini-batch < mini_batch_size i.e less than 64)
+    if m % batch_size != 0:
+        mini_batch_X = shuffled_X[:, batch_size * (k + 1) :]
+        mini_batch_Y = shuffled_Y[:, batch_size * (k + 1) :]
+        
+        mini_batch_X.append(mini_batch_x)
+        mini_batch_Y.append(mini_batch_y.reshape(batch_size))
+    
     return mini_batch_X , mini_batch_Y
 
 def epoch(iterations:int,weights,x_train,y_train, x_test, y_test,v:float,s:float,t:int=0,optimizer="gd",alpha:float= 0.0001,lambd:float = 0):
